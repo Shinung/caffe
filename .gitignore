@@ -112,3 +112,9 @@ MANIFEST-*
 *.opensdf
 *.pdb
 *.props
+
+#jobs files
+jobs/
+
+#log files for iter curv graph
+*.log

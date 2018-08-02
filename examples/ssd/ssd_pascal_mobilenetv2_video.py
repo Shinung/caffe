@@ -113,27 +113,27 @@ scale = 0.8
 ### Hopefully you don't need to change the following ###
 resize = "{}x{}".format(resize_width, resize_height)
 video_data_param = {
-        'video_type': int(P.VideoData.VIDEO),
+        'video_type': P.VideoData.VIDEO,
         'video_file': video_file,
         }
 test_transform_param = {
         'mean_value': [104, 117, 123],
         'resize_param': {
                 'prob': 1,
-                'resize_mode': int(P.Resize.WARP),
+                'resize_mode': P.Resize.WARP,
                 'height': resize_height,
                 'width': resize_width,
-                'interp_mode': [int(P.Resize.LINEAR)],
+                'interp_mode': [P.Resize.LINEAR],
                 },
         }
 output_transform_param = {
         'mean_value': [104, 117, 123],
         'resize_param': {
                 'prob': 1,
-                'resize_mode': int(P.Resize.WARP),
+                'resize_mode': P.Resize.WARP,
                 'height': int(video_height * scale),
                 'width': int(video_width * scale),
-                'interp_mode': [int(P.Resize.LINEAR)],
+                'interp_mode': [P.Resize.LINEAR],
                 },
         }
 # parameters for generating detection output.
@@ -152,15 +152,20 @@ det_out_param = {
     'visualize_threshold': visualize_threshold,
     }
 
+print(video_data_param)
+print(test_transform_param)
+print(output_transform_param)
+print(det_out_param)
+
 # The job name should be same as the name used in examples/ssd/ssd_pascal.py.
-job_name = "SSD_{}".format(resize)
+job_name = "SSD_MOBILE_{}".format(resize)
 # The name of the model. Modify it if you want.
-model_name = "VGG_VOC0712_{}".format(job_name)
+model_name = "MOBILENET_V2_VOC0712_SSD_{}".format(resize)
 
 # Directory which stores the model .prototxt file.
 save_dir = "models/VGGNet/VOC0712/{}_video".format(job_name)
 # Directory which stores the snapshot of trained models.
-snapshot_dir = "models/VGGNet/VOC0712/{}".format(job_name)
+snapshot_dir = "models/VGGNet/VOC0712/{}/snapshot".format(job_name)
 # Directory which stores the job script and log file.
 job_dir = "jobs/VGGNet/VOC0712/{}_video".format(job_name)
 
@@ -176,6 +181,7 @@ max_iter = 0
 for file in os.listdir(snapshot_dir):
   if file.endswith(".caffemodel"):
     basename = os.path.splitext(file)[0]
+    print(basename)
     iter = int(basename.split("{}_iter_".format(model_name))[1])
     if iter > max_iter:
       max_iter = iter
@@ -196,7 +202,7 @@ min_dim = 300
 # conv7_2 ==> 5 x 5
 # conv8_2 ==> 3 x 3
 # conv9_2 ==> 1 x 1
-mbox_source_layers = ['conv4_3', 'fc7', 'conv6_2', 'conv7_2', 'conv8_2', 'conv9_2']
+mbox_source_layers = ['conv5_1/dwise', 'fc7', 'conv6_2', 'conv7_2', 'conv8_2', 'conv9_2']
 # in percent %
 min_ratio = 20
 max_ratio = 90
@@ -232,10 +238,11 @@ net = caffe.NetSpec()
 net.data = L.VideoData(video_data_param=video_data_param,
         data_param=dict(batch_size=test_batch_size),
         transform_param=test_transform_param)
-
+'''
 VGGNetBody(net, from_layer='data', fully_conv=True, reduced=True, dilated=True,
     dropout=False)
-
+'''
+'''
 AddExtraLayers(net, use_batchnorm, lr_mult=lr_mult)
 
 mbox_layers = CreateMultiBoxHead(net, data_layer='data', from_layers=mbox_source_layers,
@@ -257,8 +264,8 @@ elif conf_loss_type == P.MultiBoxLoss.LOGISTIC:
   sigmoid_name = "{}_sigmoid".format(conf_name)
   net[sigmoid_name] = L.Sigmoid(net[conf_name])
   mbox_layers[1] = net[sigmoid_name]
-
-mbox_layers.append(net.data)
+'''
+# mbox_layers.append(net.data)
 net.detection_out = L.DetectionOutput(*mbox_layers,
     detection_output_param=det_out_param,
     transform_param=output_transform_param,
@@ -288,6 +295,7 @@ py_file = os.path.abspath(__file__)
 shutil.copy(py_file, job_dir)
 
 # Run the job.
+'''
 os.chmod(job_file, stat.S_IRWXU)
 if run_soon:
   job_file = os.path.abspath(job_file)
@@ -296,3 +304,4 @@ if run_soon:
                         job_file],
                        stdout=sys.stdout)
   p.communicate()
+'''
